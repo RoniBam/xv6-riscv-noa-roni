@@ -12,7 +12,7 @@ sys_exit(void)
   int n;
   char* m = "";
   argint(0, &n);
-  argstr(1,&m,32);
+  argstr(1,m,32);
   exit(n,m);
   return 0;  // not reached
 }
@@ -35,7 +35,7 @@ sys_wait(void)
   uint64 p;
   uint64 m;
   argaddr(0, &p);
-  argaddr(1, &p);
+  argaddr(1, &m);
   return wait(p,m);
 }
 
