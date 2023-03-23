@@ -167,9 +167,13 @@ main(void)
     }
     if(fork1() == 0)
       runcmd(parsecmd(buf));
-    wait(0);
+    
+    char* msg = "";
+    wait(0, msg);
+    printf("%s",msg);
+
   }
-  exit(0);
+  exit(0,"hi");
 }
 
 void
