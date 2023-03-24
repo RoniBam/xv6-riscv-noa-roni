@@ -410,16 +410,17 @@ wait(uint64 addr1, uint64 addr2)
           // Found one.
           pid = pp->pid;
           if(addr1 != 0 && copyout(p->pagetable, addr1, (char *)&pp->xstate,
-                                  sizeof(pp->xstate)) < 0
-                                   && addr2 != 0 && copyout(p->pagetable, addr2, (char *)&pp->exit_msg,
-                                  sizeof(pp->exit_msg)) < 0) {
+                                  sizeof(pp->xstate)) < 0) {
+
             release(&pp->lock);
             release(&wait_lock);
             return -1;
           }
+          copyout(p->pagetable, addr2, (char*)pp->exit_msg,sizeof(pp->exit_msg));
           freeproc(pp);
           release(&pp->lock);
           release(&wait_lock);
+          
           return pid;
         }
         release(&pp->lock);

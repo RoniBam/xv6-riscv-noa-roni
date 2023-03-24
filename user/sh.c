@@ -168,12 +168,12 @@ main(void)
     if(fork1() == 0)
       runcmd(parsecmd(buf));
     
-    char* msg = "hi";
+    char msg[32];
     wait(0, msg);
     printf("%s",msg);
 
   }
-  exit(0,"hi");
+  exit(0,"default");
 }
 
 void
