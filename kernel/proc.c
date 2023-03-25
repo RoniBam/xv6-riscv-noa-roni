@@ -6,6 +6,7 @@
 #include "proc.h"
 #include "defs.h"
 #include "limits.h"
+#include "proc_stat.h"
 
 struct cpu cpus[NCPU];
 
@@ -18,6 +19,8 @@ struct spinlock pid_lock;
 
 extern void forkret(void);
 static void freeproc(struct proc *p);
+
+int sched_policy;
 
 extern char trampoline[]; // trampoline.S
 
@@ -494,10 +497,53 @@ scheduler(void)
     // Avoid deadlock by ensuring that devices can interrupt.
     intr_on();
 
-   // if (sched_policy == 1){
+   struct proc *proc_to_run; 
+   if (sched_policy == 1){
     //choose procces to run according to it's accumulator - ps_priority:
-    long long min_runnable_accumulator_value = LLONG_MAX;
-    struct proc *min_accumulator_proc = 0; 
+    proc_to_run = find_proc_to_run_by_acculumator();
+    if (proc_to_run != 0){
+      start_proc_run(proc_to_run,c);
+    }      
+  }
+  else {
+    if (sched_policy == 2) {
+      //choose procces to run according to it's cfs priority;
+      proc_to_run = find_proc_to_run_by_cfs();
+      if (proc_to_run != 0){
+        start_proc_run(proc_to_run,c);
+      }
+    }    
+     //deafult scheduler
+     else{
+      for(p = proc; p < &proc[NPROC]; p++) {
+        acquire(&p->lock);
+        if(p->state == RUNNABLE) {
+        // Switch to chosen process.  It is the process's job
+        // to release its lock and then reacquire it
+        // before jumping back to us.
+          p->state = RUNNING;
+          acquire(&tickslock);
+          p->start_run = ticks;
+          p->retime = ticks - p->start_runnable;
+          release(&tickslock);
+          c->proc = p;
+          swtch(&c->context, &p->context);
+        // Process is done running for now.
+        // It should have changed its p->state before coming back.
+        c->proc = 0;
+      }
+      release(&p->lock);
+        }
+      } 
+    } 
+  }
+}
+
+struct proc* 
+find_proc_to_run_by_acculumator(){
+  long long min_runnable_accumulator_value = LLONG_MAX;
+    struct proc *min_accumulator_proc = 0;
+    struct proc *p;
     for(p = proc; p < &proc[NPROC]; p++) {
         if (p->state == RUNNABLE) {
               if (p->accumulator < min_runnable_accumulator_value){
@@ -506,34 +552,14 @@ scheduler(void)
               }
         }
     }
-    if (min_accumulator_proc != 0){
-     struct proc *p = min_accumulator_proc; 
-      acquire(&p->lock);
-      if(p->state == RUNNABLE) {
-        // Switch to chosen process.  It is the process's job
-        // to release its lock and then reacquire it
-        // before jumping back to us.
-        p->state = RUNNING;
-        acquire(&tickslock);
-        p->start_run = ticks;
-        p->retime = ticks - p->start_runnable;
-        release(&tickslock);
-        c->proc = p;
-        swtch(&c->context, &p->context);
+    return min_accumulator_proc;
+}
 
-        // Process is done running for now.
-        // It should have changed its p->state before coming back.
-        c->proc = 0;
-      }
-      release(&p->lock);
-    }
-  }
-
-  /*else {
-    if (sched_policy == 2){
-      //choose procces to run according to it's cfs priority;
-    int min_runnable_cfs_value = INT_MAX;
+struct proc*
+find_proc_to_run_by_cfs(){
+  int min_runnable_cfs_value = INT_MAX;
     struct proc *min_cfs_proc = 0; 
+    struct proc *p;
     for(p = proc; p < &proc[NPROC]; p++) {
         if (p->state == RUNNABLE) {
             //calc the vruntime;
@@ -558,9 +584,12 @@ scheduler(void)
               }
         }
     }
-    if (min_cfs_proc != 0){
-     struct proc *p = min_cfs_proc; 
-      acquire(&p->lock);
+    return min_cfs_proc;
+}
+
+void
+start_proc_run(struct proc* p, struct cpu *c){
+  acquire(&p->lock);
       if(p->state == RUNNABLE) {
         // Switch to chosen process.  It is the process's job
         // to release its lock and then reacquire it
@@ -578,30 +607,7 @@ scheduler(void)
         c->proc = 0;
       }
       release(&p->lock);
-    }
-    }
-     //deafult scheduler
-     else{
-      for(p = proc; p < &proc[NPROC]; p++) {
-      acquire(&p->lock);
-      if(p->state == RUNNABLE) {
-        // Switch to chosen process.  It is the process's job
-        // to release its lock and then reacquire it
-        // before jumping back to us.
-        p->state = RUNNING;
-        c->proc = p;
-        swtch(&c->context, &p->context);
-
-        // Process is done running for now.
-        // It should have changed its p->state before coming back.
-        c->proc = 0;
-      }
-      release(&p->lock);
-    }
-  } 
-    } 
-  } */
-}
+  }
 
 
 // Switch to scheduler.  Must hold only p->lock

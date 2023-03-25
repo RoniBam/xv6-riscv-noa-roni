@@ -6,6 +6,8 @@
         "user.h": "c",
         "cstdlib": "c",
         "stat.h": "c",
-        "climits": "c"
+        "climits": "c",
+        "exception": "c",
+        "new": "c"
     },
 }

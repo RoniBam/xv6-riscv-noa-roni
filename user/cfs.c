@@ -1,17 +1,17 @@
 #include "kernel/types.h"
 #include "kernel/stat.h"
+#include "kernel/proc_stat.h"
 #include "user/user.h"
-#include "kernel/proc.h"
 
 int main () {
     int high_pid = fork();
-    if (getpid != 0){
+    if (high_pid != 0){
         set_cfs_priority(0);
     }
     else{
         set_cfs_priority(1);
         int low_pid = fork();
-        if (getpid == 0){
+        if (low_pid == 0){
             set_cfs_priority(2);
         }
         for (int i=0; i< 1000000 ; i++){

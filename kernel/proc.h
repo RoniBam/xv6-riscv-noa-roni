@@ -115,10 +115,3 @@ struct proc {
   uint start_run;
   uint start_runnable;
 };
-
-struct proc_stats {
-  int cfs_priority;
-  uint rtime;                 //Process runtime 
-  uint stime;                 //Process sleeptime
-  uint retime;                //Process runnabletime
-};

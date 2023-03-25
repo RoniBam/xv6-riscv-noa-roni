@@ -110,6 +110,11 @@ void            set_ps_priority(int);
 void            set_cfs_priority(int);
 int             find_min_accumulator(void);
 struct proc_stats* get_cfs_stats(int);
+void            set_policy(int);
+struct proc*    find_proc_to_run_by_acculumator();
+struct proc*    find_proc_to_run_by_cfs();
+void            start_proc_run(struct proc* p, struct cpu *c);
+extern int      sched_policy;
 
 // swtch.S
 void            swtch(struct context*, struct context*);
@@ -191,4 +196,3 @@ void            virtio_disk_intr(void);
 
 // number of elements in fixed-size array
 #define NELEM(x) (sizeof(x)/sizeof((x)[0]))
-int sched_policy;
