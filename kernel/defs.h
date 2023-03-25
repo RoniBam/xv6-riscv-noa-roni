@@ -107,7 +107,9 @@ int             either_copyout(int user_dst, uint64 dst, void *src, uint64 len);
 int             either_copyin(void *dst, int user_src, uint64 src, uint64 len);
 void            procdump(void);
 void            set_ps_priority(int);
+void            set_cfs_priority(int);
 int             find_min_accumulator(void);
+struct proc_stats* get_cfs_stats(int);
 
 // swtch.S
 void            swtch(struct context*, struct context*);
@@ -189,3 +191,4 @@ void            virtio_disk_intr(void);
 
 // number of elements in fixed-size array
 #define NELEM(x) (sizeof(x)/sizeof((x)[0]))
+int sched_policy;

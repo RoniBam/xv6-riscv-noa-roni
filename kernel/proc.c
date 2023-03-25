@@ -296,10 +296,21 @@ fork(void)
     return -1;
   }
   np->sz = p->sz;
-  //sets the priority of the new prosses to 5
+  //sets the ps priority of the new prosses to 5
   np->ps_priority = 5;
   //chooses the minimum accumulator between all current prosses and sets the new one
   np -> accumulator = find_min_accumulator();
+
+  //init process times fields;
+  np -> retime = 0;
+  np -> rtime = 0;
+  np -> stime = 0;
+  np -> start_run = 0;
+  np -> start_sleep = 0;
+  np -> start_runnable = 0;
+
+  //init the child cfs priority as it's parent
+  np -> cfs_priority = p -> cfs_priority;
   
   // copy saved user registers.
   *(np->trapframe) = *(p->trapframe);
@@ -483,7 +494,8 @@ scheduler(void)
     // Avoid deadlock by ensuring that devices can interrupt.
     intr_on();
 
-    //choose procces to run according to it's accumulator
+   // if (sched_policy == 1){
+    //choose procces to run according to it's accumulator - ps_priority:
     long long min_runnable_accumulator_value = LLONG_MAX;
     struct proc *min_accumulator_proc = 0; 
     for(p = proc; p < &proc[NPROC]; p++) {
@@ -502,6 +514,10 @@ scheduler(void)
         // to release its lock and then reacquire it
         // before jumping back to us.
         p->state = RUNNING;
+        acquire(&tickslock);
+        p->start_run = ticks;
+        p->retime = ticks - p->start_runnable;
+        release(&tickslock);
         c->proc = p;
         swtch(&c->context, &p->context);
 
@@ -512,7 +528,81 @@ scheduler(void)
       release(&p->lock);
     }
   }
-} 
+
+  /*else {
+    if (sched_policy == 2){
+      //choose procces to run according to it's cfs priority;
+    int min_runnable_cfs_value = INT_MAX;
+    struct proc *min_cfs_proc = 0; 
+    for(p = proc; p < &proc[NPROC]; p++) {
+        if (p->state == RUNNABLE) {
+            //calc the vruntime;
+            int decay_factor = 0; 
+            if (p->cfs_priority == 0) {
+              decay_factor = 75;
+            }
+            else{
+              if (p->cfs_priority == 1){
+                decay_factor = 100;
+              }
+            else {
+              if (p->cfs_priority == 2)
+                decay_factor = 125;
+            }
+          }
+
+          int vruntime = decay_factor * (p -> rtime / (p -> rtime + p -> stime + p -> retime)); 
+          if (vruntime < min_runnable_cfs_value){
+                min_runnable_cfs_value = vruntime;
+                min_cfs_proc = p;
+              }
+        }
+    }
+    if (min_cfs_proc != 0){
+     struct proc *p = min_cfs_proc; 
+      acquire(&p->lock);
+      if(p->state == RUNNABLE) {
+        // Switch to chosen process.  It is the process's job
+        // to release its lock and then reacquire it
+        // before jumping back to us.
+        p->state = RUNNING;
+        acquire(&tickslock);
+        p->start_run = ticks;
+        p->retime = ticks - p->start_runnable;
+        release(&tickslock);
+        c->proc = p;
+        swtch(&c->context, &p->context);
+
+        // Process is done running for now.
+        // It should have changed its p->state before coming back.
+        c->proc = 0;
+      }
+      release(&p->lock);
+    }
+    }
+     //deafult scheduler
+     else{
+      for(p = proc; p < &proc[NPROC]; p++) {
+      acquire(&p->lock);
+      if(p->state == RUNNABLE) {
+        // Switch to chosen process.  It is the process's job
+        // to release its lock and then reacquire it
+        // before jumping back to us.
+        p->state = RUNNING;
+        c->proc = p;
+        swtch(&c->context, &p->context);
+
+        // Process is done running for now.
+        // It should have changed its p->state before coming back.
+        c->proc = 0;
+      }
+      release(&p->lock);
+    }
+  } 
+    } 
+  } */
+}
+
 
 // Switch to scheduler.  Must hold only p->lock
 // and have changed proc->state. Saves and restores
@@ -548,6 +638,10 @@ yield(void)
   struct proc *p = myproc();
   acquire(&p->lock);
   p->state = RUNNABLE;
+  acquire(&tickslock);
+  p->start_runnable = ticks;
+  p->rtime = ticks - p->start_run;
+  release(&tickslock);
   sched();
   release(&p->lock);
 }
@@ -593,6 +687,10 @@ sleep(void *chan, struct spinlock *lk)
   // Go to sleep.
   p->chan = chan;
   p->state = SLEEPING;
+  acquire(&tickslock);
+  p->rtime = ticks - p ->start_run;
+  p->start_sleep = ticks;
+  release(&tickslock);
   //sets the accumulator of the procces
   p->accumulator = p->accumulator + p-> ps_priority;
 
@@ -618,6 +716,10 @@ wakeup(void *chan)
       acquire(&p->lock);
       if(p->state == SLEEPING && p->chan == chan) {
         p->state = RUNNABLE;
+        acquire(&tickslock);
+        p->start_runnable = ticks;
+        p->stime = ticks - p->start_sleep;
+        release(&tickslock);
          p->accumulator = find_min_accumulator(); 
       }
       release(&p->lock);
@@ -730,5 +832,37 @@ procdump(void)
 
 void
 set_ps_priority(int priority){
+  struct proc *p = myproc();
+  acquire(&p -> lock);
   myproc() -> ps_priority = priority;
+  release(&p -> lock);
 }
+
+void
+set_cfs_priority(int priority){
+  struct proc *p = myproc();
+  acquire(&p -> lock);
+  myproc() -> cfs_priority = priority;
+  release(&p->lock);
+}
+
+struct proc_stats*
+get_cfs_stats(int pid) {
+  struct proc *p;
+  struct proc_stats *s = 0;
+  for(p = proc; p < &proc[NPROC]; p++){
+    if (p -> pid == pid) {
+      s->cfs_priority = p->cfs_priority;
+      s->retime = p ->retime;
+      s -> rtime = p -> rtime;
+      s ->stime = p -> stime;
+    }
+  }
+  return s;
+}
+
+void
+set_policy(int policy){
+  sched_policy = policy;
+}
+

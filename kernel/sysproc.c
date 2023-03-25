@@ -106,3 +106,27 @@ sys_set_ps_priority(void){
   set_ps_priority(pri);
   return 0;
 }
+
+uint64
+sys_set_cfs_priority(void){
+  int pri;
+  argint(0,&pri);
+  set_cfs_priority(pri);
+  return 0;
+}
+
+uint64
+sys_get_cfs_stats(void){
+  int pid;
+  argint(0,&pid);
+  get_cfs_stats(pid);
+  return 0;
+}
+
+uint64
+sys_set_policy(void){
+  int policy;
+  argint(0,&policy);
+  set_policy(policy);
+  return 0;
+}

@@ -107,5 +107,18 @@ struct proc {
   char exit_msg[32];
   long long accumulator;
   int ps_priority;
-  
+  int cfs_priority;
+  uint rtime;                 //Process runtime 
+  uint stime;                 //Process sleeptime
+  uint retime;                //Process runnabletime
+  uint start_sleep;
+  uint start_run;
+  uint start_runnable;
+};
+
+struct proc_stats {
+  int cfs_priority;
+  uint rtime;                 //Process runtime 
+  uint stime;                 //Process sleeptime
+  uint retime;                //Process runnabletime
 };
