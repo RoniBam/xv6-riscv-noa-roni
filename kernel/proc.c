@@ -685,3 +685,8 @@ procdump(void)
     printf("\n");
   }
 }
+
+void
+set_ps_priority(int priority){
+  myproc() -> ps_priority = priority;
+}
