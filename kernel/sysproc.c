@@ -104,4 +104,5 @@ sys_set_ps_priority(void){
   int pri;
   argint(0,&pri);
   set_ps_priority(pri);
+  return 0;
 }

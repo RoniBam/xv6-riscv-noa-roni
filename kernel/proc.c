@@ -5,6 +5,7 @@
 #include "spinlock.h"
 #include "proc.h"
 #include "defs.h"
+#include "limits.h"
 
 struct cpu cpus[NCPU];
 
@@ -295,7 +296,11 @@ fork(void)
     return -1;
   }
   np->sz = p->sz;
-
+  //sets the priority of the new prosses to 5
+  np->ps_priority = 5;
+  //chooses the minimum accumulator between all current prosses and sets the new one
+  np -> accumulator = find_min_accumulator();
+  
   // copy saved user registers.
   *(np->trapframe) = *(p->trapframe);
 
@@ -323,6 +328,28 @@ fork(void)
   release(&np->lock);
 
   return pid;
+}
+
+int
+find_min_accumulator(void) {
+  int num_of_unused = 0;
+  long long min = LLONG_MAX;  
+  struct proc *p;
+  for (p = proc; p < &proc[NPROC]; p++){
+    if (p->state == UNUSED){
+      num_of_unused = num_of_unused + 1;
+    }
+    else {
+      if (min < p-> accumulator){
+          min = p->accumulator;
+        }
+    }
+  } 
+  
+  if (num_of_unused == NPROC - 1){
+    min = 0;
+  }
+  return min;
 }
 
 // Pass p's abandoned children to init.
@@ -456,7 +483,19 @@ scheduler(void)
     // Avoid deadlock by ensuring that devices can interrupt.
     intr_on();
 
+    //choose procces to run according to it's accumulator
+    long long min_runnable_accumulator_value = LLONG_MAX;
+    struct proc *min_accumulator_proc = 0; 
     for(p = proc; p < &proc[NPROC]; p++) {
+        if (p->state == RUNNABLE) {
+              if (p->accumulator < min_runnable_accumulator_value){
+                min_runnable_accumulator_value = p -> accumulator;
+                min_accumulator_proc = p;
+              }
+        }
+    }
+    if (min_accumulator_proc != 0){
+     struct proc *p = min_accumulator_proc; 
       acquire(&p->lock);
       if(p->state == RUNNABLE) {
         // Switch to chosen process.  It is the process's job
@@ -473,7 +512,7 @@ scheduler(void)
       release(&p->lock);
     }
   }
-}
+} 
 
 // Switch to scheduler.  Must hold only p->lock
 // and have changed proc->state. Saves and restores
@@ -554,6 +593,8 @@ sleep(void *chan, struct spinlock *lk)
   // Go to sleep.
   p->chan = chan;
   p->state = SLEEPING;
+  //sets the accumulator of the procces
+  p->accumulator = p->accumulator + p-> ps_priority;
 
   sched();
 
@@ -577,6 +618,7 @@ wakeup(void *chan)
       acquire(&p->lock);
       if(p->state == SLEEPING && p->chan == chan) {
         p->state = RUNNABLE;
+         p->accumulator = find_min_accumulator(); 
       }
       release(&p->lock);
     }

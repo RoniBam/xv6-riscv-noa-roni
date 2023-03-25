@@ -5,6 +5,7 @@
         "defs.h": "c",
         "user.h": "c",
         "cstdlib": "c",
-        "stat.h": "c"
+        "stat.h": "c",
+        "climits": "c"
     },
 }
