@@ -113,8 +113,9 @@ struct proc_stats* get_cfs_stats(int);
 void            set_policy(int);
 struct proc*    find_proc_to_run_by_acculumator();
 struct proc*    find_proc_to_run_by_cfs();
-void            start_proc_run(struct proc* p, struct cpu *c);
+void            start_proc_run(struct proc* ,struct cpu*);
 extern int      sched_policy;
+void            update_process_times(void*);
 
 // swtch.S
 void            swtch(struct context*, struct context*);

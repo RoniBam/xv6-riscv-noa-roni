@@ -111,7 +111,4 @@ struct proc {
   uint rtime;                 //Process runtime 
   uint stime;                 //Process sleeptime
   uint retime;                //Process runnabletime
-  uint start_sleep;
-  uint start_run;
-  uint start_runnable;
 };

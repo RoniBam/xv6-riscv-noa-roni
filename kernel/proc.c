@@ -308,9 +308,6 @@ fork(void)
   np -> retime = 0;
   np -> rtime = 0;
   np -> stime = 0;
-  np -> start_run = 0;
-  np -> start_sleep = 0;
-  np -> start_runnable = 0;
 
   //init the child cfs priority as it's parent
   np -> cfs_priority = p -> cfs_priority;
@@ -522,10 +519,6 @@ scheduler(void)
         // to release its lock and then reacquire it
         // before jumping back to us.
           p->state = RUNNING;
-          acquire(&tickslock);
-          p->start_run = ticks;
-          p->retime = ticks - p->start_runnable;
-          release(&tickslock);
           c->proc = p;
           swtch(&c->context, &p->context);
         // Process is done running for now.
@@ -595,10 +588,6 @@ start_proc_run(struct proc* p, struct cpu *c){
         // to release its lock and then reacquire it
         // before jumping back to us.
         p->state = RUNNING;
-        acquire(&tickslock);
-        p->start_run = ticks;
-        p->retime = ticks - p->start_runnable;
-        release(&tickslock);
         c->proc = p;
         swtch(&c->context, &p->context);
 
@@ -644,10 +633,6 @@ yield(void)
   struct proc *p = myproc();
   acquire(&p->lock);
   p->state = RUNNABLE;
-  acquire(&tickslock);
-  p->start_runnable = ticks;
-  p->rtime = ticks - p->start_run;
-  release(&tickslock);
   sched();
   release(&p->lock);
 }
@@ -693,10 +678,6 @@ sleep(void *chan, struct spinlock *lk)
   // Go to sleep.
   p->chan = chan;
   p->state = SLEEPING;
-  acquire(&tickslock);
-  p->rtime = ticks - p ->start_run;
-  p->start_sleep = ticks;
-  release(&tickslock);
   //sets the accumulator of the procces
   p->accumulator = p->accumulator + p-> ps_priority;
 
@@ -722,14 +703,33 @@ wakeup(void *chan)
       acquire(&p->lock);
       if(p->state == SLEEPING && p->chan == chan) {
         p->state = RUNNABLE;
-        acquire(&tickslock);
-        p->start_runnable = ticks;
-        p->stime = ticks - p->start_sleep;
-        release(&tickslock);
          p->accumulator = find_min_accumulator(); 
       }
       release(&p->lock);
     }
+  }
+}
+
+void
+update_process_times(void *chan){
+  struct proc *p;
+  for(p = proc; p < &proc[NPROC]; p++) {
+    acquire(&p->lock);
+      switch(p-> state){
+        case RUNNING:
+          p->rtime++;
+          break;
+        case RUNNABLE:
+           p->retime++;
+          break;
+        case SLEEPING:
+          p -> stime ++;
+          break;
+        
+        default:
+          break;
+      }
+    release(&p->lock);  
   }
 }
 
