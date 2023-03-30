@@ -1,7 +1,9 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <sys/syscall.h>
+//#include <stdio.h>
+//#include <stdlib.h>
+//#include <unistd.h>
+//#include <sys/syscall.h>
+#include "kernel/types.h"
+#include "user/user.h"
 
 
 
@@ -10,7 +12,6 @@ int main(int argc, char *argv[]) {
     // Check that the user provided an argument
     if (argc < 2) {
         printf("Usage: policy <policy_code>\n");
-        exit(1);
     }
     // Parse the policy code from the command-line argument
     policy_code = atoi(argv[1]);
@@ -19,9 +20,9 @@ int main(int argc, char *argv[]) {
 
     if (ret == 0) {
         printf("Scheduling policy set to %d\n", policy_code);
-        exit(0);
     } else {
         printf("Error setting scheduling policy: %ld\n", ret);
-        exit(1);
     }
+
+    return 0;
 }

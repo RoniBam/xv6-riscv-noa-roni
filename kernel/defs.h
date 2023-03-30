@@ -115,7 +115,7 @@ int             set_policy(int);
 struct proc*    find_proc_to_run_by_acculumator();
 struct proc*    find_proc_to_run_by_cfs();
 void            start_proc_run(struct proc* ,struct cpu*);
-void            update_process_times(struct proc*);
+void            update_process_times();
 
 // swtch.S
 void            swtch(struct context*, struct context*);

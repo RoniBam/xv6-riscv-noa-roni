@@ -486,16 +486,15 @@ wait(uint64 addr1, uint64 addr2)
 void
 scheduler(void)
 {
-  //struct proc *p;
+  struct proc *p;
   struct cpu *c = mycpu();
   
   c->proc = 0;
   for(;;){
     // Avoid deadlock by ensuring that devices can interrupt.
     intr_on();
-
    struct proc *proc_to_run; 
-/*   if (sched_policy == 1){
+   if (sched_policy == 1){
     //choose procces to run according to it's accumulator - ps_priority:
     proc_to_run = find_proc_to_run_by_acculumator();
     if (proc_to_run != 0){
@@ -503,7 +502,8 @@ scheduler(void)
     }      
   }
   else {
-    if (sched_policy == 2) { */
+    if (sched_policy == 2) { 
+      printf("in sched policy 2");
       //choose procces to run according to it's cfs priority;
       proc_to_run = find_proc_to_run_by_cfs();
       if (proc_to_run != 0){
@@ -511,7 +511,7 @@ scheduler(void)
       }
     }    
      //deafult scheduler 
-    /* else{
+     else{
       for(p = proc; p < &proc[NPROC]; p++) {
         acquire(&p->lock);
         if(p->state == RUNNABLE) {
@@ -529,7 +529,7 @@ scheduler(void)
         }
       } 
     }  
-  } */
+  } 
 }
 
 struct proc* 
@@ -713,29 +713,26 @@ wakeup(void *chan)
 }
 
 void
-update_process_times(struct proc* p){
-  //struct proc *p;
-  //for(p = proc; p < &proc[NPROC]; p++) {
-    //acquire(&p->lock);
+update_process_times(){
+  struct proc *p;
+  for(p = proc; p < &proc[NPROC]; p++) {
+    acquire(&p->lock);
       switch(p-> state){
         case RUNNING:
-          //printf("in running ticks %d\n",ticks);
           p->rtime = p->rtime + ticks;
           break;
         case RUNNABLE:
-          //printf("in runnable\n");
             p->retime = p->retime + ticks;
           break;
         case SLEEPING:
-          //printf("in sleeping\n");
            p->stime = p->stime + ticks;
           break;
         
         default:
           break;
       }
-    //release(&p->lock);  
-  //}
+    release(&p->lock);  
+  }
 }
 
 // Kill the process with the given pid.
@@ -857,13 +854,9 @@ set_cfs_priority(int priority){
   release(&p->lock);
 }
 
-//struct proc_stats*
-//struct proc_stats*
+
 void
 get_cfs_stats(int pid,uint64 priority,uint64 rtime,uint64 retime,uint64 stime) {
-  //struct proc_stats a = {0,0,0,0};
-  //struct proc_stats *s = &a;
-  //int s=100;
   struct proc *p;
   for(p = proc; p < &proc[NPROC]; p++){
     acquire(&p->lock);
@@ -872,17 +865,10 @@ get_cfs_stats(int pid,uint64 priority,uint64 rtime,uint64 retime,uint64 stime) {
       copyout(p->pagetable,rtime,(char*)&p->rtime,sizeof(p->rtime));
       copyout(p->pagetable,retime,(char*)&p->retime,sizeof(p->retime));
       copyout(p->pagetable,stime,(char*)&p->stime,sizeof(p->stime));
-      /*s->cfs_priority = p->cfs_priority;
-      s->retime = p ->retime;
-      s -> rtime = p -> rtime;
-      s ->stime = p -> stime; */
+    
     }
     release(&p->lock);
   }
-   /*printf("p cfs priority %d\n", s->cfs_priority);
-    printf("p running time %d\n", s->rtime);
-    printf("p sleep time %d\n", s->stime);
-    printf("p runnable time %d\n", s->retime);  */
 
 }
 

@@ -82,7 +82,6 @@ usertrap(void)
     acquire(&p->lock);
     
     p->accumulator = p->accumulator + p-> ps_priority;
-    update_process_times(p);
     release(&p->lock);
     yield();
   }
@@ -162,7 +161,6 @@ kerneltrap()
     //sets the accumulator of the procces
     acquire(&p->lock);
     p->accumulator = p->accumulator + p-> ps_priority;
-    update_process_times(p);
     release(&p->lock);
     
     yield();
@@ -178,7 +176,7 @@ clockintr()
 {
   acquire(&tickslock);
   ticks++;
-  //update_process_times(&ticks);
+  update_process_times();
   wakeup(&ticks);
   release(&tickslock);
 }
