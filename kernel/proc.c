@@ -351,7 +351,7 @@ find_min_accumulator(void) {
       num_of_unused = num_of_unused + 1;
     }
     else {
-      if (min < p-> accumulator){
+      if (min > p-> accumulator){
           min = p->accumulator;
         }
     }
@@ -591,6 +591,7 @@ start_proc_run(struct proc* p, struct cpu *c){
         c->proc = p;
         swtch(&c->context, &p->context);
 
+
         // Process is done running for now.
         // It should have changed its p->state before coming back.
         c->proc = 0;
@@ -678,8 +679,7 @@ sleep(void *chan, struct spinlock *lk)
   // Go to sleep.
   p->chan = chan;
   p->state = SLEEPING;
-  //sets the accumulator of the procces
-  p->accumulator = p->accumulator + p-> ps_priority;
+  
 
   sched();
 
@@ -867,8 +867,9 @@ get_cfs_stats(int pid) {
   return s;
 }
 
-void
+int
 set_policy(int policy){
   sched_policy = policy;
+  return 0;
 }
 

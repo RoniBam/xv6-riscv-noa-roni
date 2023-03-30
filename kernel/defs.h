@@ -110,7 +110,7 @@ void            set_ps_priority(int);
 void            set_cfs_priority(int);
 int             find_min_accumulator(void);
 struct proc_stats* get_cfs_stats(int);
-void            set_policy(int);
+int            set_policy(int);
 struct proc*    find_proc_to_run_by_acculumator();
 struct proc*    find_proc_to_run_by_cfs();
 void            start_proc_run(struct proc* ,struct cpu*);
