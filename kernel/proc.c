@@ -486,7 +486,7 @@ wait(uint64 addr1, uint64 addr2)
 void
 scheduler(void)
 {
-  struct proc *p;
+  //struct proc *p;
   struct cpu *c = mycpu();
   
   c->proc = 0;
@@ -495,7 +495,7 @@ scheduler(void)
     intr_on();
 
    struct proc *proc_to_run; 
-   if (sched_policy == 1){
+/*   if (sched_policy == 1){
     //choose procces to run according to it's accumulator - ps_priority:
     proc_to_run = find_proc_to_run_by_acculumator();
     if (proc_to_run != 0){
@@ -503,15 +503,15 @@ scheduler(void)
     }      
   }
   else {
-    if (sched_policy == 2) {
+    if (sched_policy == 2) { */
       //choose procces to run according to it's cfs priority;
       proc_to_run = find_proc_to_run_by_cfs();
       if (proc_to_run != 0){
         start_proc_run(proc_to_run,c);
       }
     }    
-     //deafult scheduler
-     else{
+     //deafult scheduler 
+    /* else{
       for(p = proc; p < &proc[NPROC]; p++) {
         acquire(&p->lock);
         if(p->state == RUNNABLE) {
@@ -528,8 +528,8 @@ scheduler(void)
       release(&p->lock);
         }
       } 
-    } 
-  }
+    }  
+  } */
 }
 
 struct proc* 
@@ -554,6 +554,7 @@ find_proc_to_run_by_cfs(){
     struct proc *min_cfs_proc = 0; 
     struct proc *p;
     for(p = proc; p < &proc[NPROC]; p++) {
+      acquire(&p->lock);
         if (p->state == RUNNABLE) {
             //calc the vruntime;
             int decay_factor = 0; 
@@ -576,6 +577,7 @@ find_proc_to_run_by_cfs(){
                 min_cfs_proc = p;
               }
         }
+        release(&p->lock);
     }
     return min_cfs_proc;
 }
@@ -717,13 +719,16 @@ update_process_times(void *chan){
     acquire(&p->lock);
       switch(p-> state){
         case RUNNING:
-          p->rtime++;
+          //printf("in running ticks %d\n",ticks);
+          p->rtime = p->rtime + ticks;
           break;
         case RUNNABLE:
-           p->retime++;
+          //printf("in runnable\n");
+            p->retime = p->retime + ticks;
           break;
         case SLEEPING:
-          p -> stime ++;
+          //printf("in sleeping\n");
+           p->stime = p->stime + ticks;
           break;
         
         default:
@@ -840,7 +845,7 @@ void
 set_ps_priority(int priority){
   struct proc *p = myproc();
   acquire(&p -> lock);
-  myproc() -> ps_priority = priority;
+  p -> ps_priority = priority;
   release(&p -> lock);
 }
 
@@ -848,23 +853,35 @@ void
 set_cfs_priority(int priority){
   struct proc *p = myproc();
   acquire(&p -> lock);
-  myproc() -> cfs_priority = priority;
+  p -> cfs_priority = priority;
   release(&p->lock);
 }
 
+//struct proc_stats*
 struct proc_stats*
 get_cfs_stats(int pid) {
-  struct proc *p;
   struct proc_stats *s = 0;
+  //int s=100;
+  struct proc *p;
   for(p = proc; p < &proc[NPROC]; p++){
+    acquire(&p->lock);
     if (p -> pid == pid) {
-      s->cfs_priority = p->cfs_priority;
+      //printf("in get this is the stime before save : %d\n",p->stime);
+      //s = p->stime;
+      //printf("in get this is the stime after save : %d\n",s);
+      //s->cfs_priority = p->cfs_priority;
+      //s = p ->retime;
+      //printf("in get before setting fiels in s\n");
       s->retime = p ->retime;
       s -> rtime = p -> rtime;
-      s ->stime = p -> stime;
+      s ->stime = p -> stime; 
+      //printf("in get after setting fiels in s\n");
     }
+    release(&p->lock);
   }
+
   return s;
+
 }
 
 int

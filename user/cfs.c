@@ -4,7 +4,26 @@
 #include "user/user.h"
 
 int main () {
-    int high_pid = fork();
+    set_cfs_priority(7);
+    for (int i=0; i< 1000000 ; i++){
+            if (i % 100000 == 0){
+                sleep(1);
+        }
+    
+            }
+
+              int mypid = getpid();
+                printf("my pid %d\n",mypid);
+                printf("in main %p",get_cfs_stats(mypid));
+                //struct proc_stats *s = get_cfs_stats(mypid);
+                //uint64 s =  get_cfs_stats(mypid);
+                //printf("result of get stats %d\n",&s->cfs_priority);
+               /*printf("my cfs priority %d\n", s->cfs_priority);
+                printf("my running time %d\n", s->rtime);
+                printf("my sleep time %d\n", s->stime);
+                printf("my runnable time %d\n", s->retime); */
+
+  /*  int high_pid = fork();
     if (high_pid != 0){
         set_cfs_priority(0);
     }
@@ -17,7 +36,8 @@ int main () {
         for (int i=0; i< 1000000 ; i++){
             if (i % 100000 == 0){
                 sleep(1);
-                int mypid = getpid();
+        }
+          int mypid = getpid();
                 printf("my pid %d\n",mypid);
                 struct proc_stats *s = get_cfs_stats(mypid);
                 printf("my cfs priority %d\n", s->cfs_priority);
@@ -25,9 +45,9 @@ int main () {
                 printf("my sleep time %d\n", s->stime);
                 printf("my runnable time %d\n", s->retime);
             }
-        }
-    }
+    } */
 
     return 0;
 }
+
     

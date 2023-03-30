@@ -115,12 +115,12 @@ sys_set_cfs_priority(void){
   return 0;
 }
 
-uint64
+struct proc_stats* 
 sys_get_cfs_stats(void){
   int pid;
   argint(0,&pid);
-  get_cfs_stats(pid);
-  return 0;
+  return get_cfs_stats(pid);
+  //return 0;
 }
 
 uint64

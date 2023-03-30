@@ -27,6 +27,7 @@ int memsize(void);
 int set_ps_priority(int);
 int set_cfs_priority(int);
 struct proc_stats* get_cfs_stats(int);
+//uint64 get_cfs_stats(int);
 int set_policy(int);
 
 // ulib.c
