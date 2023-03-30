@@ -8,6 +8,7 @@
         "stat.h": "c",
         "climits": "c",
         "exception": "c",
-        "new": "c"
+        "new": "c",
+        "proc_stat.h": "c"
     },
 }

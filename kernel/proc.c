@@ -713,10 +713,10 @@ wakeup(void *chan)
 }
 
 void
-update_process_times(void *chan){
-  struct proc *p;
-  for(p = proc; p < &proc[NPROC]; p++) {
-    acquire(&p->lock);
+update_process_times(struct proc* p){
+  //struct proc *p;
+  //for(p = proc; p < &proc[NPROC]; p++) {
+    //acquire(&p->lock);
       switch(p-> state){
         case RUNNING:
           //printf("in running ticks %d\n",ticks);
@@ -734,8 +734,8 @@ update_process_times(void *chan){
         default:
           break;
       }
-    release(&p->lock);  
-  }
+    //release(&p->lock);  
+  //}
 }
 
 // Kill the process with the given pid.
@@ -858,29 +858,31 @@ set_cfs_priority(int priority){
 }
 
 //struct proc_stats*
-struct proc_stats*
-get_cfs_stats(int pid) {
-  struct proc_stats *s = 0;
+//struct proc_stats*
+void
+get_cfs_stats(int pid,uint64 priority,uint64 rtime,uint64 retime,uint64 stime) {
+  //struct proc_stats a = {0,0,0,0};
+  //struct proc_stats *s = &a;
   //int s=100;
   struct proc *p;
   for(p = proc; p < &proc[NPROC]; p++){
     acquire(&p->lock);
     if (p -> pid == pid) {
-      //printf("in get this is the stime before save : %d\n",p->stime);
-      //s = p->stime;
-      //printf("in get this is the stime after save : %d\n",s);
-      //s->cfs_priority = p->cfs_priority;
-      //s = p ->retime;
-      //printf("in get before setting fiels in s\n");
+      copyout(p->pagetable,priority,(char*)&p->cfs_priority,sizeof(p->cfs_priority));
+      copyout(p->pagetable,rtime,(char*)&p->rtime,sizeof(p->rtime));
+      copyout(p->pagetable,retime,(char*)&p->retime,sizeof(p->retime));
+      copyout(p->pagetable,stime,(char*)&p->stime,sizeof(p->stime));
+      /*s->cfs_priority = p->cfs_priority;
       s->retime = p ->retime;
       s -> rtime = p -> rtime;
-      s ->stime = p -> stime; 
-      //printf("in get after setting fiels in s\n");
+      s ->stime = p -> stime; */
     }
     release(&p->lock);
   }
-
-  return s;
+   /*printf("p cfs priority %d\n", s->cfs_priority);
+    printf("p running time %d\n", s->rtime);
+    printf("p sleep time %d\n", s->stime);
+    printf("p runnable time %d\n", s->retime);  */
 
 }
 

@@ -5,6 +5,7 @@
 #include "memlayout.h"
 #include "spinlock.h"
 #include "proc.h"
+#include "proc_stat.h"
 
 uint64
 sys_exit(void)
@@ -115,12 +116,20 @@ sys_set_cfs_priority(void){
   return 0;
 }
 
-struct proc_stats* 
+void
 sys_get_cfs_stats(void){
   int pid;
+  uint64 priority;
+  uint64 rtime;
+  uint64 retime;
+  uint64 stime;
   argint(0,&pid);
-  return get_cfs_stats(pid);
-  //return 0;
+  argaddr(1,&priority);
+  argaddr(2,&rtime);
+  argaddr(3,&retime);
+  argaddr(4,&stime);
+  get_cfs_stats(pid,priority,rtime,retime,stime);
+  //return get_cfs_stats(pid);
 }
 
 uint64
