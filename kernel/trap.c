@@ -80,7 +80,7 @@ usertrap(void)
   if(which_dev == 2){
     //sets the accumulator of the procces
     acquire(&p->lock);
-    
+    update_process_times();
     p->accumulator = p->accumulator + p-> ps_priority;
     release(&p->lock);
     yield();
@@ -157,13 +157,15 @@ kerneltrap()
   }
 
   // give up the CPU if this is a timer interrupt.
-  if(which_dev == 2 && myproc() != 0 && myproc()->state == RUNNING){
-    //sets the accumulator of the procces
-    acquire(&p->lock);
-    p->accumulator = p->accumulator + p-> ps_priority;
-    release(&p->lock);
-    
-    yield();
+  if(which_dev == 2){
+    update_process_times();
+    if (myproc() != 0 && myproc()->state == RUNNING){
+      //sets the accumulator of the procces
+      acquire(&p->lock);
+      p->accumulator = p->accumulator + p-> ps_priority;
+      release(&p->lock);
+      yield();
+    }
   }
   // the yield() may have caused some traps to occur,
   // so restore trap registers for use by kernelvec.S's sepc instruction.
@@ -176,7 +178,6 @@ clockintr()
 {
   acquire(&tickslock);
   ticks++;
-  update_process_times();
   wakeup(&ticks);
   release(&tickslock);
 }
