@@ -136,6 +136,7 @@ uint64
 sys_set_policy(void){
   int policy;
   argint(0,&policy);
-  set_policy(policy);
-  return 0;
+  return set_policy(policy);
+ 
+  
 }

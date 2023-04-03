@@ -880,7 +880,13 @@ get_cfs_stats(int pid,uint64 priority,uint64 rtime,uint64 retime,uint64 stime) {
 
 int
 set_policy(int policy){
-  sched_policy = policy;
-  return 0;
+ 
+  if(policy == 0 || policy == 1 || policy == 2){
+    sched_policy = policy;
+    return 0;
+  }
+  else{
+    return -1;
+  }
 }
 
