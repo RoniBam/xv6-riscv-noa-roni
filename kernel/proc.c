@@ -309,6 +309,7 @@ fork(void)
   np -> rtime = 0;
   np -> stime = 0;
 
+
   //init the child cfs priority as it's parent
   np -> cfs_priority = p -> cfs_priority;
   
@@ -351,9 +352,11 @@ find_min_accumulator(void) {
       num_of_unused = num_of_unused + 1;
     }
     else {
+      if(p->state == RUNNABLE || p->state == RUNNING){
       if (min > p-> accumulator){
           min = p->accumulator;
         }
+      }
     }
   } 
   
@@ -503,7 +506,6 @@ scheduler(void)
   }
   else {
     if (sched_policy == 2) { 
-      printf("in sched policy 2");
       //choose procces to run according to it's cfs priority;
       proc_to_run = find_proc_to_run_by_cfs();
       if (proc_to_run != 0){
@@ -519,6 +521,7 @@ scheduler(void)
         // to release its lock and then reacquire it
         // before jumping back to us.
           p->state = RUNNING;
+       
           c->proc = p;
           swtch(&c->context, &p->context);
         // Process is done running for now.
@@ -636,6 +639,7 @@ yield(void)
   struct proc *p = myproc();
   acquire(&p->lock);
   p->state = RUNNABLE;
+  
   sched();
   release(&p->lock);
 }
@@ -681,6 +685,7 @@ sleep(void *chan, struct spinlock *lk)
   // Go to sleep.
   p->chan = chan;
   p->state = SLEEPING;
+ 
   
 
   sched();
@@ -705,7 +710,8 @@ wakeup(void *chan)
       acquire(&p->lock);
       if(p->state == SLEEPING && p->chan == chan) {
         p->state = RUNNABLE;
-         p->accumulator = find_min_accumulator(); 
+     
+        p->accumulator = find_min_accumulator(); 
       }
       release(&p->lock);
     }
@@ -719,13 +725,13 @@ update_process_times(){
     acquire(&p->lock);
       switch(p-> state){
         case RUNNING:
-          p->rtime = p->rtime + ticks;
+         p->rtime++;
           break;
         case RUNNABLE:
-            p->retime = p->retime + ticks;
+         p->retime++;
           break;
         case SLEEPING:
-           p->stime = p->stime + ticks;
+        p->stime++;
           break;
         
         default:

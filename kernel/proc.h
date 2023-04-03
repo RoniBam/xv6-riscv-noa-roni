@@ -99,6 +99,12 @@ struct proc {
   uint stime;                 //Process sleeptime
   uint retime;                //Process runnabletime
 
+  uint last_rtime;                 //Process runtime 
+  uint last_stime;                 //Process sleeptime
+  uint last_retime;                //Process runnabletime
+
+
+
   // wait_lock must be held when using this:
   struct proc *parent;         // Parent process
 
