@@ -65,9 +65,11 @@ usertrap(void)
     intr_on();
 
     syscall();
-  } else if((which_dev = devintr()) != 0){
+  } 
+  else if((which_dev = devintr()) != 0){
     // ok
-  } else {
+  }
+   else {
     printf("usertrap(): unexpected scause %p pid=%d\n", r_scause(), p->pid);
     printf("            sepc=%p stval=%p\n", r_sepc(), r_stval());
     setkilled(p);
@@ -79,8 +81,9 @@ usertrap(void)
   // give up the CPU if this is a timer interrupt.
   if(which_dev == 2){
     //sets the accumulator of the procces
-    acquire(&p->lock);
+    
     update_process_times();
+    acquire(&p->lock);
     p->accumulator = p->accumulator + p-> ps_priority;
     release(&p->lock);
     yield();

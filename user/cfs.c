@@ -6,15 +6,15 @@
 int main () {
     int high_pid = fork();
     if (high_pid != 0){
-        set_cfs_priority(0);
-        sleep(100);
+        set_cfs_priority(10);
     }
     else{
         set_cfs_priority(1);
+        sleep(20);
         int low_pid = fork();
         if (low_pid == 0){
             set_cfs_priority(2);
-            sleep(50);
+            sleep(30);
         }
         for (int i=0; i< 1000000 ; i++){
             if (i % 100000 == 0){

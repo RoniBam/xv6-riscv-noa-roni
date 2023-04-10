@@ -298,6 +298,7 @@ fork(void)
     release(&np->lock);
     return -1;
   }
+  
   np->sz = p->sz;
   //sets the ps priority of the new prosses to 5
   np->ps_priority = 5;
@@ -457,7 +458,11 @@ wait(uint64 addr1, uint64 addr2)
             release(&wait_lock);
             return -1;
           }
-          copyout(p->pagetable, addr2, (char*)pp->exit_msg,sizeof(pp->exit_msg));
+          if(addr2 != 0 && copyout(p->pagetable, addr2, (char*)pp->exit_msg,sizeof(pp->exit_msg)) < 0){
+            release(&pp->lock);
+            release(&wait_lock);
+            return -1;
+          }
           freeproc(pp);
           release(&pp->lock);
           release(&wait_lock);
@@ -601,7 +606,7 @@ start_proc_run(struct proc* p, struct cpu *c){
         // It should have changed its p->state before coming back.
         c->proc = 0;
       }
-      release(&p->lock);
+    release(&p->lock);
   }
 
 
