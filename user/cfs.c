@@ -6,11 +6,12 @@
 int main () {
     int high_pid = fork();
     if (high_pid != 0){
-        set_cfs_priority(10);
+        set_cfs_priority(0);
+        sleep(100);
     }
     else{
         set_cfs_priority(1);
-        sleep(20);
+        sleep(50);
         int low_pid = fork();
         if (low_pid == 0){
             set_cfs_priority(2);

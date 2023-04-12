@@ -385,8 +385,11 @@ reparent(struct proc *p)
 // Exit the current process.  Does not return.
 // An exited process remains in the zombie state
 // until its parent calls wait().
+
+//Since we changed the exit function to accept 2 arguments, we changed all calls with 1 argument to accept a defualt message
+
 void
-exit(int status,char* msg)
+exit(int status,char* msg) 
 {
   struct proc *p = myproc();
 
